@@ -121,8 +121,8 @@ void StartDefaultTask(void *argument)
   
   // 2. 打印开机欢迎界面
   OLED_ShowString(0, 0, "Music Player", 16);
-  OLED_ShowString(0, 2, "System: Ready", 12);
-  OLED_ShowString(0, 4, "RTOS: Running", 12);
+  OLED_ShowString(0, 2, "System: Ready", 16);
+  OLED_ShowString(0, 4, "RTOS: Running", 16);
 	
   // 无限循环：UI 心跳与刷新
   for(;;)

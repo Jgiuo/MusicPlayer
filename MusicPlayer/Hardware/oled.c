@@ -39,7 +39,7 @@ void OLED_Init(void)
     HAL_Delay(100); // 等待屏幕上电稳定
     OLED_WR_Byte(0xAE, 0); // 关闭显示
     OLED_WR_Byte(0x20, 0); // 设置内存寻址模式
-    OLED_WR_Byte(0x10, 0); // 00,水平寻址; 01,垂直寻址; 10,页寻址 (默认)
+    OLED_WR_Byte(0x02, 0); // 00,水平寻址; 01,垂直寻址; 10,页寻址 (默认)
     OLED_WR_Byte(0xb0, 0); // 设置页寻址起始页 (0~7)
     OLED_WR_Byte(0xc8, 0); // 设置 COM 输出扫描方向，正常显示
     OLED_WR_Byte(0x00, 0); // 设置列低地址
