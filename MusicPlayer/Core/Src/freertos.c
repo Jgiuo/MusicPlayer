@@ -116,6 +116,7 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   // 1. 系统启动后，先初始化屏幕并清屏
+  osDelay(100);
   OLED_Init();
   OLED_Clear();
   
