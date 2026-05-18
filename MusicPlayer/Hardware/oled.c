@@ -122,6 +122,7 @@ void OLED_ShowString(uint8_t x, uint8_t y, char *chr, uint8_t Char_Size)
 }
 #endif
 
+/*
 #include "oled.h"
 #include "i2c.h" 
 #include "oledfont.h" 
@@ -220,6 +221,159 @@ void OLED_Init(void)
     OLED_WR_Byte(0xAF, 0); 
     OLED_Clear();
 }
+
+*/
+
+#include "oled.h"
+#include "main.h" // 使用 HAL_GPIO_WritePin 必需
+#include "oledfont.h" 
+
+// ================= 软件模拟 I2C 底层宏定义 =================
+#define OLED_SCL_Clr() HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET)
+#define OLED_SCL_Set() HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET)
+#define OLED_SDA_Clr() HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET)
+#define OLED_SDA_Set() HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET)
+
+// I2C 起始信号
+void IIC_Start(void) {
+    OLED_SDA_Set();
+    OLED_SCL_Set();
+    OLED_SDA_Clr();
+    OLED_SCL_Clr();
+}
+
+// I2C 停止信号
+void IIC_Stop(void) {
+    OLED_SCL_Clr();
+    OLED_SDA_Clr();
+    OLED_SCL_Set();
+    OLED_SDA_Set();
+}
+
+// I2C 等待应答 (简易版)
+void IIC_Wait_Ack(void) {
+    OLED_SCL_Set();
+    OLED_SCL_Clr();
+}
+
+// I2C 发送一个字节
+void Write_IIC_Byte(uint8_t IIC_Byte) {
+    uint8_t i;
+    for(i=0; i<8; i++) {
+        if(IIC_Byte & 0x80) OLED_SDA_Set();
+        else OLED_SDA_Clr();
+        OLED_SCL_Set();
+        OLED_SCL_Clr();
+        IIC_Byte <<= 1;
+    }
+    OLED_SDA_Set();
+    OLED_SCL_Set();
+    OLED_SCL_Clr();
+}
+
+// 最底层的 OLED 发送函数 (替换掉了之前 HAL 库的硬件发送)
+void OLED_WR_Byte(uint8_t dat, uint8_t cmd) {
+    IIC_Start();
+    Write_IIC_Byte(0x78); // OLED 的 I2C 地址
+    IIC_Wait_Ack();
+    if(cmd) Write_IIC_Byte(0x40); // 写入数据
+    else Write_IIC_Byte(0x00);    // 写入命令
+    IIC_Wait_Ack();
+    Write_IIC_Byte(dat);
+    IIC_Wait_Ack();
+    IIC_Stop();
+}
+// =========================================================
+
+// 设置光标位置 (保留了 SH1106 的 +2 兼容)
+void OLED_Set_Pos(uint8_t x, uint8_t y) 
+{ 
+    x += 2; 
+    OLED_WR_Byte(0xb0 + y, 0); 
+    OLED_WR_Byte(((x & 0xf0) >> 4) | 0x10, 0); 
+    OLED_WR_Byte((x & 0x0f), 0); 
+} 
+
+// 清屏函数
+void OLED_Clear(void)  
+{  
+    uint8_t i, n;		    
+    for(i = 0; i < 8; i++)  
+    {  
+        OLED_WR_Byte(0xb0 + i, 0);    
+        OLED_WR_Byte(0x00, 0);      
+        OLED_WR_Byte(0x10, 0);      
+        for(n = 0; n < 128; n++) OLED_WR_Byte(0, 1); 
+    } 
+}
+
+// 显示单字符
+void OLED_ShowChar(uint8_t x, uint8_t y, uint8_t chr, uint8_t Char_Size)
+{
+    unsigned char c = 0, i = 0;
+    c = chr - ' '; 
+    if(x > 128 - 8) { x = 0; y = y + 2; } 
+    if(Char_Size == 16)
+    {
+        OLED_Set_Pos(x, y); 
+        for(i = 0; i < 8; i++) OLED_WR_Byte(asc2_1608[c][i], 1); 
+        OLED_Set_Pos(x, y + 1); 
+        for(i = 0; i < 8; i++) OLED_WR_Byte(asc2_1608[c][i + 8], 1); 
+    }
+}
+
+// 显示字符串
+void OLED_ShowString(uint8_t x, uint8_t y, char *chr, uint8_t Char_Size)
+{
+    unsigned char j = 0;
+    while (chr[j] != '\0') 
+    {
+        OLED_ShowChar(x, y, chr[j], Char_Size); 
+        x += 8;                                 
+        if (x > 120) { x = 0; y += 2; }
+        j++; 
+    }
+}
+
+// 屏幕初始化
+void OLED_Init(void)
+{
+    // 让 PB6 和 PB7 初始处于空闲高电平
+    OLED_SCL_Set();
+    OLED_SDA_Set();
+    HAL_Delay(100); 
+
+    OLED_WR_Byte(0xAE, 0); 
+    OLED_WR_Byte(0x20, 0); 
+    OLED_WR_Byte(0x02, 0); 
+    OLED_WR_Byte(0xb0, 0); 
+    OLED_WR_Byte(0xc8, 0); 
+    OLED_WR_Byte(0x00, 0); 
+    OLED_WR_Byte(0x10, 0); 
+    OLED_WR_Byte(0x40, 0); 
+    OLED_WR_Byte(0x81, 0); 
+    OLED_WR_Byte(0xff, 0); 
+    OLED_WR_Byte(0xa1, 0); 
+    OLED_WR_Byte(0xa6, 0); 
+    OLED_WR_Byte(0xa8, 0); 
+    OLED_WR_Byte(0x3F, 0); 
+    OLED_WR_Byte(0xa4, 0); 
+    OLED_WR_Byte(0xd3, 0); 
+    OLED_WR_Byte(0x00, 0); 
+    OLED_WR_Byte(0xd5, 0); 
+    OLED_WR_Byte(0xf0, 0); 
+    OLED_WR_Byte(0xd9, 0); 
+    OLED_WR_Byte(0x22, 0); 
+    OLED_WR_Byte(0xda, 0); 
+    OLED_WR_Byte(0x12, 0);
+    OLED_WR_Byte(0xdb, 0); 
+    OLED_WR_Byte(0x20, 0); 
+    OLED_WR_Byte(0x8D, 0); 
+    OLED_WR_Byte(0x14, 0); 
+    OLED_WR_Byte(0xAF, 0); 
+    OLED_Clear();
+}
+
 
 
 
