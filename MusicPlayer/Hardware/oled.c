@@ -376,7 +376,7 @@ void OLED_Init(void)
 
 */
 
-
+/*
 #include "oled.h"
 #include "main.h" 
 #include "oledfont.h" 
@@ -537,5 +537,164 @@ void OLED_Init(void)
     OLED_WR_Byte(0xAF, 0); 
     OLED_Clear();
 }
+*/
+
+
+
+#include "oled.h"
+#include "main.h" 
+#include "oledfont.h" 
+
+// 🎯【核心】在STM32内存中开辟 1KB 的显存缓存
+uint8_t OLED_GRAM[8][128]; 
+
+#define OLED_SCL_Clr() HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET)
+#define OLED_SCL_Set() HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET)
+#define OLED_SDA_Clr() HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET)
+#define OLED_SDA_Set() HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET)
+
+void IIC_Delay(void) {
+    uint16_t t = 30; while(t--);
+}
+
+void IIC_Start(void) {
+    OLED_SDA_Set(); OLED_SCL_Set(); IIC_Delay();
+    OLED_SDA_Clr(); IIC_Delay();
+    OLED_SCL_Clr(); IIC_Delay();
+}
+
+void IIC_Stop(void) {
+    OLED_SCL_Clr(); OLED_SDA_Clr(); IIC_Delay();
+    OLED_SCL_Set(); IIC_Delay();
+    OLED_SDA_Set(); IIC_Delay();
+}
+
+void IIC_Wait_Ack(void) {
+    OLED_SDA_Set(); IIC_Delay();
+    OLED_SCL_Set(); IIC_Delay();
+    OLED_SCL_Clr(); IIC_Delay();
+}
+
+void Write_IIC_Byte(uint8_t IIC_Byte) {
+    uint8_t i;
+    for(i=0; i<8; i++) {
+        OLED_SCL_Clr(); IIC_Delay();
+        if(IIC_Byte & 0x80) OLED_SDA_Set();
+        else OLED_SDA_Clr();
+        IIC_Delay();
+        OLED_SCL_Set(); IIC_Delay();
+        OLED_SCL_Clr();
+        IIC_Byte <<= 1;
+    }
+}
+
+void OLED_WR_Byte(uint8_t dat, uint8_t cmd) {
+    IIC_Start();
+    Write_IIC_Byte(0x78);
+    IIC_Wait_Ack();
+    if(cmd) Write_IIC_Byte(0x40);
+    else Write_IIC_Byte(0x00);
+    IIC_Wait_Ack();
+    Write_IIC_Byte(dat);
+    IIC_Wait_Ack();
+    IIC_Stop();
+}
+
+// 🎯【核心】将内存数据一口气推送到屏幕，避开 STOP 信号 Bug
+void OLED_Refresh(void)
+{
+    uint8_t i, n;
+    for(i = 0; i < 8; i++)
+    {
+        OLED_WR_Byte(0xb0 + i, 0); // 设置页
+        OLED_WR_Byte(0x00, 0);     // 设置列低位 
+        OLED_WR_Byte(0x10, 0);     // 设置列高位
+
+        IIC_Start();
+        Write_IIC_Byte(0x78);
+        IIC_Wait_Ack();
+        Write_IIC_Byte(0x40);      // 开启连续数据写入模式
+        IIC_Wait_Ack();
+        for(n = 0; n < 128; n++)
+        {
+            Write_IIC_Byte(OLED_GRAM[i][n]); // 连发 128 个字节！
+            IIC_Wait_Ack();
+        }
+        IIC_Stop(); // 一行写完了才发一次 STOP
+    }
+}
+
+void OLED_Clear(void)
+{
+    uint8_t i, n;
+    for(i = 0; i < 8; i++)
+        for(n = 0; n < 128; n++)
+            OLED_GRAM[i][n] = 0; // 只清空单片机内存
+    OLED_Refresh();              // 推送到屏幕
+}
+
+// 🎯【核心】写字不再受限于通信，直接在内存里拼图！
+void OLED_ShowChar(uint8_t x, uint8_t y, uint8_t chr, uint8_t Char_Size)
+{
+    unsigned char c = 0, i = 0;
+    c = chr - ' ';
+    if(x > 128 - 8) { x = 0; y = y + 2; }
+    if(Char_Size == 16)
+    {
+        for(i = 0; i < 8; i++) {
+            OLED_GRAM[y][x+i] = asc2_1608[c][i];       // 上半部分
+            OLED_GRAM[y+1][x+i] = asc2_1608[c][i+8];   // 下半部分
+        }
+    }
+}
+
+void OLED_ShowString(uint8_t x, uint8_t y, char *chr, uint8_t Char_Size)
+{
+    unsigned char j = 0;
+    while (chr[j] != '\0')
+    {
+        OLED_ShowChar(x, y, chr[j], Char_Size);
+        x += 8;
+        if (x > 120) { x = 0; y += 2; }
+        j++;
+    }
+}
+
+void OLED_Init(void)
+{
+    OLED_SCL_Set();
+    OLED_SDA_Set();
+    // 启动延时已由 FreeRTOS 的 osDelay 提供
+    OLED_WR_Byte(0xAE, 0); 
+    OLED_WR_Byte(0x20, 0); 
+    OLED_WR_Byte(0x02, 0); 
+    OLED_WR_Byte(0xb0, 0); 
+    OLED_WR_Byte(0xc8, 0); 
+    OLED_WR_Byte(0x00, 0); 
+    OLED_WR_Byte(0x10, 0); 
+    OLED_WR_Byte(0x40, 0); 
+    OLED_WR_Byte(0x81, 0); 
+    OLED_WR_Byte(0xff, 0); 
+    OLED_WR_Byte(0xa1, 0); 
+    OLED_WR_Byte(0xa6, 0); 
+    OLED_WR_Byte(0xa8, 0); 
+    OLED_WR_Byte(0x3F, 0); 
+    OLED_WR_Byte(0xa4, 0); 
+    OLED_WR_Byte(0xd3, 0); 
+    OLED_WR_Byte(0x00, 0); 
+    OLED_WR_Byte(0xd5, 0); 
+    OLED_WR_Byte(0x80, 0); 
+    OLED_WR_Byte(0xd9, 0); 
+    OLED_WR_Byte(0x22, 0); 
+    OLED_WR_Byte(0xda, 0); 
+    OLED_WR_Byte(0x12, 0);
+    OLED_WR_Byte(0xdb, 0); 
+    OLED_WR_Byte(0x20, 0); 
+    OLED_WR_Byte(0x8D, 0); 
+    OLED_WR_Byte(0x14, 0); 
+    OLED_WR_Byte(0xAF, 0); 
+    OLED_Clear();
+}
+
 
 

@@ -1,3 +1,5 @@
+
+/*
 #ifndef __OLED_H
 #define __OLED_H
 
@@ -11,5 +13,19 @@ void OLED_Clear(void);
 void OLED_Init(void);
 void OLED_ShowChar(uint8_t x, uint8_t y, uint8_t chr, uint8_t Char_Size);
 void OLED_ShowString(uint8_t x, uint8_t y, char *chr, uint8_t Char_Size);
+
+#endif
+*/
+
+
+#ifndef __OLED_H
+#define __OLED_H
+#include "main.h"
+
+void OLED_Init(void);
+void OLED_Clear(void);
+void OLED_ShowChar(uint8_t x, uint8_t y, uint8_t chr, uint8_t Char_Size);
+void OLED_ShowString(uint8_t x, uint8_t y, char *chr, uint8_t Char_Size);
+void OLED_Refresh(void); // 新增：全局刷新函数
 
 #endif

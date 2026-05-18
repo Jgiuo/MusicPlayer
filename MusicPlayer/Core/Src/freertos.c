@@ -118,19 +118,21 @@ void StartDefaultTask(void *argument)
   // 1. 系统启动后，先初始化屏幕并清屏
   osDelay(100);
   OLED_Init();
-  OLED_Clear();
   
   // 2. 打印开机欢迎界面
   OLED_ShowString(0, 0, "Music Player", 16);
   OLED_ShowString(0, 2, "System: Ready", 16);
   OLED_ShowString(0, 4, "RTOS: Running", 16);
 	
+  // 🚨 加上这句，把排版好的内容一口气推送到屏幕！
+  OLED_Refresh();
+
   // 无限循环：UI 心跳与刷新
   for(;;)
   {
     // 让板子上的 LED 闪烁，代表系统活着
     HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    
+    /*
     // 我们可以在屏幕右下角做一个动态心跳标志 (例如交替显示 * 和 空格)
     static uint8_t heartbeat = 0;
     if(heartbeat) {
@@ -139,7 +141,7 @@ void StartDefaultTask(void *argument)
         OLED_ShowString(110, 6, " ", 12);
     }
     heartbeat = !heartbeat;
-
+    */
     // 阻塞延时 500ms，让出 CPU 给其他任务
     osDelay(500);
   }
