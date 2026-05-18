@@ -1,0 +1,14 @@
+musicplayer\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/stream_buffer.c
+musicplayer\stream_buffer.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stdint.h
+musicplayer\stream_buffer.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\string.h
+musicplayer\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+musicplayer\stream_buffer.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stddef.h
+musicplayer\stream_buffer.o: ../Core/Inc/FreeRTOSConfig.h
+musicplayer\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+musicplayer\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+musicplayer\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+musicplayer\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
+musicplayer\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+musicplayer\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+musicplayer\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
+musicplayer\stream_buffer.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/stream_buffer.h

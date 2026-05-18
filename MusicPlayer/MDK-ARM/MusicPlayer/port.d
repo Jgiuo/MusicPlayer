@@ -1,0 +1,12 @@
+musicplayer\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/port.c
+musicplayer\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+musicplayer\port.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stddef.h
+musicplayer\port.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stdint.h
+musicplayer\port.o: ../Core/Inc/FreeRTOSConfig.h
+musicplayer\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+musicplayer\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+musicplayer\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+musicplayer\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
+musicplayer\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+musicplayer\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+musicplayer\port.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h

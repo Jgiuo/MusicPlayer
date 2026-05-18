@@ -1,0 +1,16 @@
+musicplayer\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/tasks.c
+musicplayer\tasks.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stdlib.h
+musicplayer\tasks.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\string.h
+musicplayer\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+musicplayer\tasks.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stddef.h
+musicplayer\tasks.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stdint.h
+musicplayer\tasks.o: ../Core/Inc/FreeRTOSConfig.h
+musicplayer\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+musicplayer\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+musicplayer\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+musicplayer\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
+musicplayer\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+musicplayer\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+musicplayer\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
+musicplayer\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h
+musicplayer\tasks.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/stack_macros.h

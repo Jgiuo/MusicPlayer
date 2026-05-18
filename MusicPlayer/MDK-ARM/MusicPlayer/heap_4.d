@@ -1,0 +1,13 @@
+musicplayer\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c
+musicplayer\heap_4.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stdlib.h
+musicplayer\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+musicplayer\heap_4.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stddef.h
+musicplayer\heap_4.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stdint.h
+musicplayer\heap_4.o: ../Core/Inc/FreeRTOSConfig.h
+musicplayer\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+musicplayer\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+musicplayer\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+musicplayer\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
+musicplayer\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+musicplayer\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+musicplayer\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
