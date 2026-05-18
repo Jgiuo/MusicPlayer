@@ -26,7 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include "oled.h"
+#include "../../Hardware/oled.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

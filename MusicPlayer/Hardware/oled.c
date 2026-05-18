@@ -1,3 +1,4 @@
+#if 0
 #include "oled.h"
 #include "i2c.h" // 确保能调用 hi2c1
 #include "oledfont.h"
@@ -119,4 +120,106 @@ void OLED_ShowString(uint8_t x, uint8_t y, char *chr, uint8_t Char_Size)
         j++; // 指向下一个字符
     }
 }
+#endif
+
+#include "oled.h"
+#include "i2c.h" 
+#include "oledfont.h" 
+
+// 1. 最底层的硬件 I2C 发送函数 (增加了超时保护 HAL_MAX_DELAY)
+void OLED_WR_Byte(uint8_t dat, uint8_t cmd)
+{
+    if(cmd) { // 发送数据
+        HAL_I2C_Mem_Write(&hi2c1, OLED_I2C_ADDRESS, 0x40, I2C_MEMADD_SIZE_8BIT, &dat, 1, HAL_MAX_DELAY);
+    } else {  // 发送命令
+        HAL_I2C_Mem_Write(&hi2c1, OLED_I2C_ADDRESS, 0x00, I2C_MEMADD_SIZE_8BIT, &dat, 1, HAL_MAX_DELAY);
+    }
+}
+
+// 2. 设置光标位置 (🔥核心修复：增加了兼容 SH1106 的 +2 偏移量)
+void OLED_Set_Pos(uint8_t x, uint8_t y) 
+{ 
+    x += 2; // 如果是 SH1106 芯片，必须加 2 才能对齐显存
+    OLED_WR_Byte(0xb0 + y, 0); // 设置行(页)
+    OLED_WR_Byte(((x & 0xf0) >> 4) | 0x10, 0); // 设置列高位
+    OLED_WR_Byte((x & 0x0f), 0); // 设置列低位
+} 
+
+// 3. 清屏函数 (修复了残留噪点)
+void OLED_Clear(void)  
+{  
+    uint8_t i, n;		    
+    for(i = 0; i < 8; i++)  
+    {  
+        OLED_WR_Byte(0xb0 + i, 0);    
+        OLED_WR_Byte(0x00, 0);      
+        OLED_WR_Byte(0x10, 0);      
+        for(n = 0; n < 128; n++) OLED_WR_Byte(0, 1); 
+    } 
+}
+
+// 4. 显示单个字符
+void OLED_ShowChar(uint8_t x, uint8_t y, uint8_t chr, uint8_t Char_Size)
+{
+    unsigned char c = 0, i = 0;
+    c = chr - ' '; 
+    if(x > 128 - 8) { x = 0; y = y + 2; } 
+    if(Char_Size == 16)
+    {
+        OLED_Set_Pos(x, y); 
+        for(i = 0; i < 8; i++) OLED_WR_Byte(asc2_1608[c][i], 1); 
+        OLED_Set_Pos(x, y + 1); 
+        for(i = 0; i < 8; i++) OLED_WR_Byte(asc2_1608[c][i + 8], 1); 
+    }
+}
+
+// 5. 显示字符串
+void OLED_ShowString(uint8_t x, uint8_t y, char *chr, uint8_t Char_Size)
+{
+    unsigned char j = 0;
+    while (chr[j] != '\0') 
+    {
+        OLED_ShowChar(x, y, chr[j], Char_Size); 
+        x += 8;                                 
+        if (x > 120) { x = 0; y += 2; }
+        j++; 
+    }
+}
+
+// 6. 屏幕出厂初始化序列
+void OLED_Init(void)
+{
+    HAL_Delay(200); // 给屏幕充足的上电复位时间
+    OLED_WR_Byte(0xAE, 0); 
+    OLED_WR_Byte(0x20, 0); 
+    OLED_WR_Byte(0x02, 0); // 强制页寻址
+    OLED_WR_Byte(0xb0, 0); 
+    OLED_WR_Byte(0xc8, 0); 
+    OLED_WR_Byte(0x00, 0); 
+    OLED_WR_Byte(0x10, 0); 
+    OLED_WR_Byte(0x40, 0); 
+    OLED_WR_Byte(0x81, 0); 
+    OLED_WR_Byte(0xff, 0); 
+    OLED_WR_Byte(0xa1, 0); 
+    OLED_WR_Byte(0xa6, 0); 
+    OLED_WR_Byte(0xa8, 0); 
+    OLED_WR_Byte(0x3F, 0); 
+    OLED_WR_Byte(0xa4, 0); 
+    OLED_WR_Byte(0xd3, 0); 
+    OLED_WR_Byte(0x00, 0); 
+    OLED_WR_Byte(0xd5, 0); 
+    OLED_WR_Byte(0xf0, 0); 
+    OLED_WR_Byte(0xd9, 0); 
+    OLED_WR_Byte(0x22, 0); 
+    OLED_WR_Byte(0xda, 0); 
+    OLED_WR_Byte(0x12, 0);
+    OLED_WR_Byte(0xdb, 0); 
+    OLED_WR_Byte(0x20, 0); 
+    OLED_WR_Byte(0x8D, 0); 
+    OLED_WR_Byte(0x14, 0); 
+    OLED_WR_Byte(0xAF, 0); 
+    OLED_Clear();
+}
+
+
 
