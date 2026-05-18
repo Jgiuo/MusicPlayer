@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include "oled.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -114,17 +115,35 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
+  // 1. 系统启动后，先初始化屏幕并清屏
+  OLED_Init();
+  OLED_Clear();
+  
+  // 2. 打印开机欢迎界面
+  OLED_ShowString(0, 0, "Music Player", 16);
+  OLED_ShowString(0, 2, "System: Ready", 12);
+  OLED_ShowString(0, 4, "RTOS: Running", 12);
 	
-  /* Infinite loop */
+  // 无限循环：UI 心跳与刷新
   for(;;)
   {
-	printf("[SYSTEM] FreeRTOS is running, heap free: %d bytes\r\n", xPortGetFreeHeapSize());
-	HAL_GPIO_TogglePin (GPIOB, GPIO_PIN_5);
-    osDelay(1000);
+    // 让板子上的 LED 闪烁，代表系统活着
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    
+    // 我们可以在屏幕右下角做一个动态心跳标志 (例如交替显示 * 和 空格)
+    static uint8_t heartbeat = 0;
+    if(heartbeat) {
+        OLED_ShowString(110, 6, "*", 12);
+    } else {
+        OLED_ShowString(110, 6, " ", 12);
+    }
+    heartbeat = !heartbeat;
+
+    // 阻塞延时 500ms，让出 CPU 给其他任务
+    osDelay(500);
   }
   /* USER CODE END StartDefaultTask */
 }
-
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
