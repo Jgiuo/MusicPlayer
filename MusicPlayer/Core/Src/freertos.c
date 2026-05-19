@@ -116,126 +116,75 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-  // 1. 系统启动后，先初始化屏幕并清�?
-	FATFS fs;
-	FRESULT res;
-	
-  osDelay(100);
+  FATFS fs;
+  FRESULT res;
+  FIL file;
+  UINT bw, br;
+  char write_buf[] = "Hello, Music!";
+  char read_buf[20] = {0};
+  char log_str[30]; // 用于存放打印日志的缓冲区
+  
+  osDelay(100); 
   OLED_Init();
-	
-	
+  
+  // 🔍 诊断 1：先看单片机能不能认出 W25Q64 的真身
+  uint32_t flash_id = SPI_FLASH_ReadID();
+  sprintf(log_str, "ID: 0x%06X", flash_id);
+  OLED_ShowString(0, 0, log_str, 16); // 正常应该显示 0xEF4017
+  OLED_Refresh();
+  osDelay(1000); // 停顿一秒让你看清 ID
 
-	
-  // 2. 打印�?机欢迎界�?
-  OLED_ShowString(0, 0, "Music Player", 16);
-  OLED_ShowString(0, 2, "Storage: W24Q64", 16);
-  //OLED_ShowString(0, 4, "RTOS: Running", 16);
-	
-	
-	OLED_ShowString(0, 4, "Mounting...", 16);
-    OLED_Refresh();
-	
-	res = f_mount(&fs, "0:/", 1);
-	// 2. 如果检测到没有文件系统，立刻执行格式化
+  // 开始挂载
+  res = f_mount(&fs, "0:/", 1); 
+  
   if (res == FR_NO_FILESYSTEM) 
   {
-      OLED_ShowString(0, 4, "Formatting...  ", 16);
+      OLED_ShowString(0, 2, "Formatting...  ", 16);
       OLED_Refresh();
-      
-      // 强制格式化 W25Q64 为 FAT 格式
-      res = f_mkfs("0:/",1,0); 
-      
-      if(res == FR_OK) {
-          // 格式化成功后重新挂载
-          res = f_mount(&fs, "0:/", 1);
-      }
+      res = f_mkfs("0:/", 1, 0); 
+      if(res == FR_OK) res = f_mount(&fs, "0:/", 1);
   }
   
-  // 3. 最终显示状态
-  if(res == FR_OK) {
-      OLED_ShowString(0, 6, "Flash Mount: OK", 16);
-      OLED_Refresh();
-      osDelay(1000); // 停顿一秒让你看清楚挂载成功
-      
-      // ------------------------------------------------
-      // 🚀 开始 VFS 读写能力测试
-      // ------------------------------------------------
-      OLED_Clear(); 
-      OLED_ShowString(0, 0, "- File Test -", 16);
+  if(res == FR_OK) 
+  {
+      OLED_ShowString(0, 2, "1. Mount: OK   ", 16);
       OLED_Refresh();
       
-      FIL file;         // 文件对象句柄
-      UINT bw, br;      // 记录实际写入和读取的字节数
-      char write_buf[] = "Hello, Music!"; // 要写入的测试内容
-      char read_buf[20] = {0};            // 用来存放读出来的内容
-      
-      // 1. 创建并打开文件 (写模式，如果存在则覆盖)
+      // 🔍 诊断 2：尝试打开文件，并抓取具体的错误码
       res = f_open(&file, "0:/test.txt", FA_CREATE_ALWAYS | FA_WRITE);
       if(res == FR_OK) {
-          OLED_ShowString(0, 2, "1. Open OK", 16);
-          // 写入数据
+          OLED_ShowString(0, 4, "2. Open: OK   ", 16);
           f_write(&file, write_buf, strlen(write_buf), &bw);
-          // 必须关闭文件，数据才会真正刷新到 Flash 物理层
           f_close(&file);
-          OLED_ShowString(0, 4, "2. Write OK", 16);
       } else {
-          OLED_ShowString(0, 2, "1. Open Fail", 16);
+          // 如果失败，打印出具体的错误数字 (比如 1 代表 DISK_ERR, 3 代表 NOT_READY)
+          sprintf(log_str, "2. Open Err: %d", res);
+          OLED_ShowString(0, 4, log_str, 16);
       }
       OLED_Refresh();
-      osDelay(500);
+      osDelay(1000);
 
-      // 2. 重新打开刚才的文件 (只读模式)
+      // 尝试读取
       res = f_open(&file, "0:/test.txt", FA_READ);
       if(res == FR_OK) {
-          // 读取内容到 read_buf
           f_read(&file, read_buf, sizeof(read_buf)-1, &br);
           f_close(&file);
-          
-          // 3. 把读出来的内容展示到屏幕上！
-          OLED_ShowString(0, 6, read_buf, 16); // 见证奇迹的时刻
+          OLED_ShowString(0, 6, read_buf, 16); 
       } else {
-          OLED_ShowString(0, 6, "Read Fail!", 16);
+          sprintf(log_str, "3. Read Err: %d", res);
+          OLED_ShowString(0, 6, log_str, 16);
       }
       OLED_Refresh();
   } 
-  //
-  
-  //else {
-      // 挂载失败的处理保留...
-
-	/*
-	if(res == FR_OK)
-	{
-		OLED_ShowString(0, 6, "SD Mount Ok", 16);
-	}
-	else
-	{
-		char err_str[20];
-		sprintf(err_str, "SD Error: %d ", res);
-		OLED_ShowString(0, 6, err_str, 16);
-	}
-	OLED_Refresh();
-	*/
-	
-  // 🚨 加上这句，把排版好的内容�?口气推�?�到屏幕�?
-  //OLED_Refresh();
-
-  // 无限循环：UI 心跳与刷�?
-  for(;;)
+  else 
   {
-    // 让板子上�? LED 闪烁，代表系统活�?
+      sprintf(log_str, "Mount Err: %d", res);
+      OLED_ShowString(0, 2, log_str, 16);
+      OLED_Refresh();
+  }
+
+  for(;;) {
     HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    /*
-    // 我们可以在屏幕右下角做一个动态心跳标�? (例如交替显示 * �? 空格)
-    static uint8_t heartbeat = 0;
-    if(heartbeat) {
-        OLED_ShowString(110, 6, "*", 12);
-    } else {
-        OLED_ShowString(110, 6, " ", 12);
-    }
-    heartbeat = !heartbeat;  
-    */
-    // 阻塞延时 500ms，让�? CPU 给其他任�?
     osDelay(500);
   }
   /* USER CODE END StartDefaultTask */
