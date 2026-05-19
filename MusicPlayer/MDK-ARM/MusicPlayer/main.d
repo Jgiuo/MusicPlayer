@@ -26,8 +26,7 @@ musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_i2c.h
 musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
-musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_sd.h
-musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_sdmmc.h
+musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
@@ -40,8 +39,15 @@ musicplayer\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.
 musicplayer\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
 musicplayer\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
 musicplayer\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+musicplayer\main.o: ../FATFS/App/fatfs.h
+musicplayer\main.o: ../Middlewares/Third_Party/FatFs/src/ff.h
+musicplayer\main.o: ../Middlewares/Third_Party/FatFs/src/integer.h
+musicplayer\main.o: ../FATFS/Target/ffconf.h
+musicplayer\main.o: ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h
+musicplayer\main.o: ../Middlewares/Third_Party/FatFs/src/diskio.h
+musicplayer\main.o: ../FATFS/Target/user_diskio.h
 musicplayer\main.o: ../Core/Inc/i2c.h
-musicplayer\main.o: ../Core/Inc/sdio.h
+musicplayer\main.o: ../Core/Inc/spi.h
 musicplayer\main.o: ../Core/Inc/usart.h
 musicplayer\main.o: ../Core/Inc/gpio.h
 musicplayer\main.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stdio.h

@@ -27,8 +27,7 @@ musicplayer\i2c.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 musicplayer\i2c.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 musicplayer\i2c.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_i2c.h
 musicplayer\i2c.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
-musicplayer\i2c.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_sd.h
-musicplayer\i2c.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_sdmmc.h
+musicplayer\i2c.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 musicplayer\i2c.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 musicplayer\i2c.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 musicplayer\i2c.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h

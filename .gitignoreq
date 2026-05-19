@@ -1,0 +1,18 @@
+# 编译产物
+*.o
+*.out
+*.elf
+*.bin
+*.hex
+*.map
+
+# 临时文件
+*.tmp
+*.bak
+*.log
+
+# IDE 配置文件
+.vscode/
+.idea/
+*.uvoptx
+*.uvguix
