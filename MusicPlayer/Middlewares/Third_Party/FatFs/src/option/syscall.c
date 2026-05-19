@@ -5,6 +5,8 @@
 
 #include <stdlib.h>		/* ANSI memory controls */
 #include "../ff.h"
+// 别忘了在这个文件的最上面或者这里加一句包含，否则找不到 FreeRTOS 的函数
+#include "FreeRTOS.h"
 
 #if _FS_REENTRANT
 /*-----------------------------------------------------------------------
@@ -125,6 +127,7 @@ void ff_rel_grant (_SYNC_t sobj)
 /*------------------------------------------------------------------------*/
 /* If a NULL is returned, the file function fails with FR_NOT_ENOUGH_CORE.
 */
+#if 0
 
 void* ff_memalloc (	/* Returns pointer to the allocated memory block */
 	UINT msize		/* Number of bytes to allocate */
@@ -144,5 +147,30 @@ void ff_memfree (
 {
 	free(mblock);	/* Discard the memory block with POSIX API */
 }
+
+#endif
+
+
+
+/*------------------------------------------------------------------------*/
+/* Allocate a memory block                                                */
+/*------------------------------------------------------------------------*/
+void* ff_memalloc (UINT msize)
+{
+    // 原来是 return malloc(msize);
+    // 现在改成向 FreeRTOS 要内存！
+    return pvPortMalloc(msize); 
+}
+
+/*------------------------------------------------------------------------*/
+/* Free a memory block                                                    */
+/*------------------------------------------------------------------------*/
+void ff_memfree (void* mblock)
+{
+    // 原来是 free(mblock);
+    // 现在改成还给 FreeRTOS！
+    vPortFree(mblock); 
+}
+
 
 #endif
