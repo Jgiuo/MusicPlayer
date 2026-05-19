@@ -64,6 +64,7 @@ const osThreadAttr_t defaultTask_attributes = {
 
 void StartDefaultTask(void *argument);
 
+extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
@@ -115,6 +116,8 @@ void MX_FREERTOS_Init(void) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN StartDefaultTask */
   FATFS fs;
   FRESULT res;
@@ -127,14 +130,14 @@ void StartDefaultTask(void *argument)
   osDelay(100); 
   OLED_Init();
   
-  // 🔍 诊断 1：先看单片机能不能认出 W25Q64 的真身
+  // 🔍 诊断 1：先看单片机能不能认�? W25Q64 的真�?
   uint32_t flash_id = SPI_FLASH_ReadID();
   sprintf(log_str, "ID: 0x%06X", flash_id);
   OLED_ShowString(0, 0, log_str, 16); // 正常应该显示 0xEF4017
   OLED_Refresh();
-  osDelay(1000); // 停顿一秒让你看清 ID
+  osDelay(1000); // 停顿�?秒让你看�? ID
 
-  // 开始挂载
+  // �?始挂�?
   res = f_mount(&fs, "0:/", 1); 
   
   if (res == FR_NO_FILESYSTEM) 
@@ -150,14 +153,14 @@ void StartDefaultTask(void *argument)
       OLED_ShowString(0, 2, "1. Mount: OK   ", 16);
       OLED_Refresh();
       
-      // 🔍 诊断 2：尝试打开文件，并抓取具体的错误码
+      // 🔍 诊断 2：尝试打�?文件，并抓取具体的错误码
       res = f_open(&file, "0:/test.txt", FA_CREATE_ALWAYS | FA_WRITE);
       if(res == FR_OK) {
           OLED_ShowString(0, 4, "2. Open: OK   ", 16);
           f_write(&file, write_buf, strlen(write_buf), &bw);
           f_close(&file);
       } else {
-          // 如果失败，打印出具体的错误数字 (比如 1 代表 DISK_ERR, 3 代表 NOT_READY)
+          // 如果失败，打印出具体的错误数�? (比如 1 代表 DISK_ERR, 3 代表 NOT_READY)
           sprintf(log_str, "2. Open Err: %d", res);
           OLED_ShowString(0, 4, log_str, 16);
       }
@@ -183,7 +186,7 @@ void StartDefaultTask(void *argument)
       OLED_Refresh();
   }
 
-  for(;;) {
+  for(;;) { 
     HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     osDelay(500);
   }

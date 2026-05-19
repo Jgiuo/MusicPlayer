@@ -5,7 +5,6 @@
 
 #include <stdlib.h>		/* ANSI memory controls */
 #include "../ff.h"
-// 别忘了在这个文件的最上面或者这里加一句包含，否则找不到 FreeRTOS 的函数
 #include "FreeRTOS.h"
 
 #if _FS_REENTRANT
@@ -16,6 +15,7 @@
  synchronization object, such as semaphore and mutex. When a zero is
  returned, the f_mount function fails with FR_INT_ERR.
 */
+
 #if 0
 int ff_cre_syncobj (	/* TRUE:Function succeeded, FALSE:Could not create due to any error */
 	BYTE vol,			/* Corresponding logical drive being processed */
@@ -87,7 +87,6 @@ void ff_rel_grant (
   osSemaphoreRelease(sobj);
 }
 #endif
-
 // 1. 创建信号量 (V2新版写法)
 int ff_cre_syncobj (BYTE vol, _SYNC_t *sobj)
 {
@@ -115,7 +114,6 @@ void ff_rel_grant (_SYNC_t sobj)
     osSemaphoreRelease(sobj);
 }
 
-
 #endif
 
 
@@ -128,7 +126,6 @@ void ff_rel_grant (_SYNC_t sobj)
 /* If a NULL is returned, the file function fails with FR_NOT_ENOUGH_CORE.
 */
 #if 0
-
 void* ff_memalloc (	/* Returns pointer to the allocated memory block */
 	UINT msize		/* Number of bytes to allocate */
 )
@@ -147,9 +144,9 @@ void ff_memfree (
 {
 	free(mblock);	/* Discard the memory block with POSIX API */
 }
-
 #endif
 
+// 别忘了在这个文件的最上面或者这里加一句包含，否则找不到 FreeRTOS 的函数
 
 
 /*------------------------------------------------------------------------*/
@@ -171,6 +168,5 @@ void ff_memfree (void* mblock)
     // 现在改成还给 FreeRTOS！
     vPortFree(mblock); 
 }
-
 
 #endif

@@ -30,6 +30,9 @@ musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pcd.h
+musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_usb.h
+musicplayer\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pcd_ex.h
 musicplayer\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h
 musicplayer\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h
 musicplayer\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
@@ -49,5 +52,10 @@ musicplayer\main.o: ../FATFS/Target/user_diskio.h
 musicplayer\main.o: ../Core/Inc/i2c.h
 musicplayer\main.o: ../Core/Inc/spi.h
 musicplayer\main.o: ../Core/Inc/usart.h
-musicplayer\main.o: ../Core/Inc/gpio.h
+musicplayer\main.o: ../USB_DEVICE/App/usb_device.h
+musicplayer\main.o: ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h
+musicplayer\main.o: ../USB_DEVICE/Target/usbd_conf.h
 musicplayer\main.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stdio.h
+musicplayer\main.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stdlib.h
+musicplayer\main.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\string.h
+musicplayer\main.o: ../Core/Inc/gpio.h

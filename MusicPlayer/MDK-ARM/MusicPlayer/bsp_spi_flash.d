@@ -31,4 +31,7 @@ musicplayer\bsp_spi_flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_s
 musicplayer\bsp_spi_flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 musicplayer\bsp_spi_flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 musicplayer\bsp_spi_flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+musicplayer\bsp_spi_flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pcd.h
+musicplayer\bsp_spi_flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_usb.h
+musicplayer\bsp_spi_flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pcd_ex.h
 musicplayer\bsp_spi_flash.o: C:\Users\Guo\Documents\keil_file\ARM\ARMCC\Bin\..\include\stdio.h
