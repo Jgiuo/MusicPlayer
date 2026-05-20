@@ -30,19 +30,21 @@ Build target 'MusicPlayer'
 compiling freertos.c...
 ../Core/Src/../../Hardware/oled.h(31): warning:  #1-D: last line of file ends without a newline
   #endif
-../Core/Src/freertos.c(134): warning:  #223-D: function "SPI_FLASH_ReadID" declared implicitly
-    uint32_t flash_id = SPI_FLASH_ReadID();
-../Core/Src/freertos.c(160): warning:  #223-D: function "strlen" declared implicitly
-            f_write(&file, write_buf, strlen(write_buf), &bw);
-../Core/Src/freertos.c(205): warning:  #223-D: function "BY8301_Play" declared implicitly
-    BY8301_Play(); // 初始开机播�?
-../Core/Src/freertos.c(220): warning:  #223-D: function "BY8301_Pause" declared implicitly
-                    BY8301_Pause(); // 正在�? -> 叫它暂停
-../Core/Src/freertos.c: 5 warnings, 0 errors
+../Core/Src/freertos.c(169): warning:  #177-D: variable "is_playing"  was declared but never referenced
+    uint8_t is_playing = 1;
+../Core/Src/freertos.c(225): warning:  #223-D: function "BY8301_PlayIndex" declared implicitly
+    BY8301_PlayIndex(1);
+../Core/Src/freertos.c(233): warning:  #223-D: function "BY8301_PausePlay" declared implicitly
+            else if(r_msg.cmd_type == 2) BY8301_PausePlay();
+../Core/Src/freertos.c(234): warning:  #223-D: function "BY8301_Next" declared implicitly
+            else if(r_msg.cmd_type == 3) BY8301_Next();
+../Core/Src/freertos.c(235): warning:  #223-D: function "BY8301_SetVolume" declared implicitly
+            else if(r_msg.cmd_type == 4) BY8301_SetVolume(r_msg.value);
+../Core/Src/freertos.c: 6 warnings, 0 errors
 linking...
-Program Size: Code=40004 RO-data=177368 RW-data=460 ZI-data=28908  
+Program Size: Code=29108 RO-data=2104 RW-data=460 ZI-data=28884  
 FromELF: creating hex file...
-"MusicPlayer\MusicPlayer.axf" - 0 Error(s), 5 Warning(s).
+"MusicPlayer\MusicPlayer.axf" - 0 Error(s), 6 Warning(s).
 
 <h2>Software Packages used:</h2>
 
