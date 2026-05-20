@@ -114,6 +114,38 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
+extern UART_HandleTypeDef huart3; // ⚠️ 这里换成了串口3的句柄
+
+// 向 BY8301 发送控制命令的通用函数 (USART3 版本)
+void BY8301_SendCmd(uint8_t cmd, uint16_t arg)
+{
+    uint8_t send_buf[6];
+    
+    send_buf[0] = 0x7E;               // 帧头
+    send_buf[1] = 0x04;               // 长度
+    send_buf[2] = cmd;                // 命令字
+    send_buf[3] = (uint8_t)(arg >> 8);// 参数高8位
+    send_buf[4] = (uint8_t)(arg);     // 参数低8位
+    send_buf[5] = 0xEF;               // 帧尾
+    
+    // ⚠️ 通过串口3 (huart3) 发送出去
+    HAL_UART_Transmit(&huart3, send_buf, 6, 100); 
+}
+
+// 快捷播放控制封装
+void BY8301_PlayIndex(uint16_t index) {
+    BY8301_SendCmd(0x41, index); // 0x41: 指定曲目播放
+}
+
+void BY8301_Pause(void) {
+    BY8301_SendCmd(0x02, 0x00);  // 0x02: 暂停命令
+}
+
+void BY8301_SetVolume(uint8_t vol) {
+    BY8301_SendCmd(0x31, vol);   // 0x31: 设置音量 (0~30)
+}
+
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
