@@ -36,11 +36,6 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-// 存放徿队列里塞的指令结构体
-typedef struct {
-    uint8_t cmd_type; // 1:播指定曲盿, 2:暂停/播放, 3:下一替, 4:调音釿
-    uint16_t value;   // 曲目号或音量大小
-} AudioCmd_t;
 
 
 

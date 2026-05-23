@@ -162,45 +162,57 @@ void AppControlTaskFun(void *argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN AppControlTaskFun */
   /* =======================================================
- * 任务 1：UI 与 按键任务 (Normal 优先级)
+ * 任务 1：UI 与 按键任务 (只管交互，不管发串口)
  * ======================================================= */
-  AudioCmd_t msg;
-  uint8_t current_track = 1;
-  uint8_t is_playing = 1;
-  
-  OLED_Clear();
-  OLED_ShowString(0, 0, "--- MP3 ---", 16);
-  OLED_Refresh();
-  /* Infinite loop */
-  for(;;)
-  {
-     // 扫描 PA0 按键 (假设是暂停/播放) key1
-      if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) 
-      {
-          osDelay(20);
-          if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
-          {
-              msg.cmd_type = 2; 
-              osMessageQueuePut(AudioCmdQueueHandle, &msg, 0, 0); // 塞入队列
-              while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) osDelay(10);
-          }
-      }
-      // 扫描 PC13 按键 (假设是下一曲)  key2
-      if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) 
-      {
-          osDelay(20);
-          if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET)
-          {
-              msg.cmd_type = 3; 
-              osMessageQueuePut(AudioCmdQueueHandle, &msg, 0, 0); // 塞入队列
-              current_track++;
-              while(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) osDelay(10);
-          }
-      }
-      
-      // 更新屏幕...
-      osDelay(50); // 保持 UI 流畅
-  }
+    AudioCmd_t msg;
+    char text_buf[20];
+    
+    OLED_Clear();
+    
+    for(;;)
+    {
+        // 🔍 按键 1: 播放 / 暂停 (PA0)
+        if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) 
+        {
+            osDelay(20); // 消抖
+            if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
+            {
+                msg.cmd_type = 1; // 1代表Toggle(播放/暂停)
+                osMessageQueuePut(AudioCmdQueueHandle, &msg, 0, 10);
+                while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) osDelay(10);
+            }
+        }
+        
+        // 🔍 按键 2: 下一曲 (PC13)
+        if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) 
+        {
+            osDelay(20);
+            if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET)
+            {
+                msg.cmd_type = 2; // 2代表下一曲
+                osMessageQueuePut(AudioCmdQueueHandle, &msg, 0, 10);
+                while(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) osDelay(10);
+            }
+        }
+        
+        // 🖥️ OLED 智能刷新机制 (只有状态改变了，才去刷屏幕，杜绝闪烁卡死)
+        if (ui_update_flag == 1) 
+        {
+            OLED_ShowString(0, 0, "--- MP3 Player ---", 16);
+            
+            sprintf(text_buf, "Track: %02d   ", current_track);
+            OLED_ShowString(0, 2, text_buf, 16);
+            
+            if (is_playing) OLED_ShowString(0, 4, "Status: Playing", 16);
+            else            OLED_ShowString(0, 4, "Status: Paused ", 16);
+            
+            OLED_Refresh();
+            ui_update_flag = 0; // 刷新完毕，放下旗帜
+        }
+        
+        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin); // 心跳灯
+        osDelay(50); // 每 50ms 跑一圈
+    }
   /* USER CODE END AppControlTaskFun */
 }
 
@@ -214,27 +226,47 @@ void AppControlTaskFun(void *argument)
 void AudioGateTaskFun(void *argument)
 {
   /* USER CODE BEGIN AudioGateTaskFun */
+
   /* =======================================================
- * 任务 2：音频守门员任务 (Above Normal 优先级)
- * 核心：平时死等，只有收到消息才发串口，绝对解耦！
+ * 任务 2：后台音频守门员任务 (只管发串口，负责同步状态)
  * ======================================================= */
-  AudioCmd_t r_msg;
-  osDelay(3000); // 开机等 BY8301 准备好
-  
-  // 首次开机播第 1 首
-  BY8301_PlayIndex(1);
-  /* Infinite loop */
-  for(;;)
-  {
-    // osWaitForever：如果队列空着，这个任务就永远休眠，不吃 CPU
-      if(osMessageQueueGet(AudioCmdQueueHandle, &r_msg, NULL, osWaitForever) == osOK)
-      {
-          if(r_msg.cmd_type == 1)      BY8301_PlayIndex(r_msg.value);
-          else if(r_msg.cmd_type == 2) BY8301_PausePlay();
-          else if(r_msg.cmd_type == 3) BY8301_Next();
-          else if(r_msg.cmd_type == 4) BY8301_SetVolume(r_msg.value);
-      }
-  }
+
+    AudioCmd_t rx_msg;
+    
+    osDelay(2500); // 必须给 BY8301 留足开机读卡的时间
+    
+    BY8301_PlayIndex(current_track); // 开机播第一首
+    is_playing = 1;
+    ui_update_flag = 1; // 通知屏幕该显示了
+
+    for(;;)
+    {
+        // 🛌 等待队列消息，如果没有操作，这个任务就不占用 CPU
+        if(osMessageQueueGet(AudioCmdQueueHandle, &rx_msg, NULL, osWaitForever) == osOK)
+        {
+            if(rx_msg.cmd_type == 1) // 收到播放/暂停切换请求
+            {
+                if (is_playing) {
+                    BY8301_Pause();
+                    is_playing = 0;
+                } else {
+                    BY8301_Play();
+                    is_playing = 1;
+                }
+                ui_update_flag = 1; // 状态改变，叫醒 UI 刷新
+            }
+            else if(rx_msg.cmd_type == 2) // 收到下一曲请求
+            {
+                BY8301_Next();
+                current_track++;
+                if (current_track > 99) current_track = 1; // 防止曲目溢出
+                is_playing = 1;     // BY8301切歌后会自动播放
+                ui_update_flag = 1; // 状态改变，叫醒 UI 刷新
+            }
+            
+            osDelay(50); // 给串口和模块一点点消化时间，防止疯狂连按死锁
+        }
+    }
   /* USER CODE END AudioGateTaskFun */
 }
 
