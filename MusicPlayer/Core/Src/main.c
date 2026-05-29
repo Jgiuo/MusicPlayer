@@ -60,16 +60,13 @@ void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
+extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
 extern osMessageQueueId_t AudioCmdQueueHandle;
 
 
 
 
-// 存放往队列里塞的消息结构体
-typedef struct {
-    uint8_t cmd_type; // 1: 播放/暂停切换, 2: 下一曲
-} AudioCmd_t;
 
 // 蓝牙接收缓存 (1个字节)
 uint8_t ble_rx_buf[1]; 
@@ -86,7 +83,7 @@ uint8_t ui_update_flag = 1;    // 1: 需要刷新屏幕, 0: 不需要 (防止屏
 // ==============================================================
 
 // 1. 指定播放曲目 (对应硬编�? 7E 05 41 00 xx xx EF)
-void BY8301_PlayIndex(uint16_t index) 
+void BY8301_PlayIndex(uint16_t index)  
 {
     uint8_t send_buf[7];
     uint8_t checksum;
@@ -114,7 +111,7 @@ void BY8301_PausePlay(void)
 }
 
 // 3. 停止播放 (固定 5 字节指令)
-void BY8301_Stop(void) 
+void BY8301_Stop(void)  
 {
     // 7E 03 0E 0D EF (长度3, 命令0E, 校验 03^0E=0D)
     uint8_t hardcode_stop[5] = {0x7E, 0x03, 0x0E, 0x0D, 0xEF};
@@ -224,10 +221,14 @@ int main(void)
   MX_FATFS_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+  
+  OLED_Init();
+  OLED_Clear();  
 
  // �?�? USART1 中断接收，随时等手机发信�?
   
   HAL_UART_Receive_IT(&huart2, ble_rx_buf, 1);
+  
 
   /* USER CODE END 2 */
 

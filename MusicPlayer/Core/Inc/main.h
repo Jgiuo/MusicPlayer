@@ -56,6 +56,13 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
+// 存放往队列里塞的消息结构体
+typedef struct {
+    uint8_t cmd_type; // 1: 播放/暂停切换, 2: 下一曲
+} AudioCmd_t;
+
+
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

@@ -85,6 +85,12 @@ const osMessageQueueAttr_t AudioCmdQueue_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
+ 
+
+extern uint8_t current_track ;     // 当前曲目
+extern uint8_t is_playing;        // 1: 正在播放, 0: 已暂停
+extern uint8_t ui_update_flag ;    // 1: 需要刷新屏幕, 0: 不需要 (防止屏幕狂刷闪烁)
+
 
 /* USER CODE END FunctionPrototypes */
 
@@ -134,10 +140,10 @@ void MX_FREERTOS_Init(void) {
   AudioGateTaskHandle = osThreadNew(AudioGateTaskFun, NULL, &AudioGateTask_attributes);
 
   /* creation of FatfsLyricTask */
-  //FatfsLyricTaskHandle = osThreadNew(FatfsLyricTaskFun, NULL, &FatfsLyricTask_attributes);
+  FatfsLyricTaskHandle = osThreadNew(FatfsLyricTaskFun, NULL, &FatfsLyricTask_attributes);
 
   /* creation of BluetoothTask */
-  //BluetoothTaskHandle = osThreadNew(BluetoothTaskFun, NULL, &BluetoothTask_attributes);
+  BluetoothTaskHandle = osThreadNew(BluetoothTaskFun, NULL, &BluetoothTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -165,40 +171,47 @@ void AppControlTaskFun(void *argument)
  * 任务 1：UI 与 按键任务 (只管交互，不管发串口)
  * ======================================================= */
     AudioCmd_t msg;
+	static uint8_t led_tick = 0;
     char text_buf[20];
-    
+	//记录按键的上一次状态，用于边缘检测
+	uint8_t key1_prev = GPIO_PIN_RESET;
+	uint8_t key2_prev = GPIO_PIN_SET;
+	
+	
     OLED_Clear();
+	OLED_ShowString(0, 0, "-- MP3 Player --",16);
+	OLED_ShowString(0, 2, "System Booting..",16);
+    OLED_Refresh();
     
     for(;;)
     {
-        // 🔍 按键 1: 播放 / 暂停 (PA0)
-        if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) 
+        //  按键 1: 播放 / 暂停 (PA0)
+		GPIO_PinState key1_curr = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+        if(key1_curr == GPIO_PIN_SET && key1_prev == GPIO_PIN_RESET)			
         {
-            osDelay(20); // 消抖
-            if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET)
-            {
+           
                 msg.cmd_type = 1; // 1代表Toggle(播放/暂停)
-                osMessageQueuePut(AudioCmdQueueHandle, &msg, 0, 10);
-                while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_SET) osDelay(10);
-            }
+                osMessageQueuePut(AudioCmdQueueHandle, &msg, 0, 0);
+                
         }
+		key1_prev = key1_curr;
         
-        // 🔍 按键 2: 下一曲 (PC13)
-        if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) 
+        // 🔍按键 2: 下一曲 (PC13)
+		GPIO_PinState key2_curr = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
+        if(key2_curr == GPIO_PIN_RESET && key2_prev == GPIO_PIN_SET) 
         {
-            osDelay(20);
-            if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET)
-            {
+           
                 msg.cmd_type = 2; // 2代表下一曲
-                osMessageQueuePut(AudioCmdQueueHandle, &msg, 0, 10);
-                while(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) osDelay(10);
-            }
+                osMessageQueuePut(AudioCmdQueueHandle, &msg, 0, 0);
+           
         }
+		key2_prev = key2_curr;
         
-        // 🖥️ OLED 智能刷新机制 (只有状态改变了，才去刷屏幕，杜绝闪烁卡死)
+        //  OLED 智能刷新机制 (只有状态改变了，才去刷屏幕，杜绝闪烁卡死)
         if (ui_update_flag == 1) 
         {
-            OLED_ShowString(0, 0, "--- MP3 Player ---", 16);
+			 OLED_Clear();
+            OLED_ShowString(0, 0, "-- MP3 Player --", 16);
             
             sprintf(text_buf, "Track: %02d   ", current_track);
             OLED_ShowString(0, 2, text_buf, 16);
@@ -209,9 +222,14 @@ void AppControlTaskFun(void *argument)
             OLED_Refresh();
             ui_update_flag = 0; // 刷新完毕，放下旗帜
         }
+			led_tick++;
+		if(led_tick >= 10) //10 * 50ms
+		{
+			HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin); // 心跳灯
+            led_tick = 0;
+		}
+		osDelay(50); // 每 50ms 跑一圈 
         
-        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin); // 心跳灯
-        osDelay(50); // 每 50ms 跑一圈
     }
   /* USER CODE END AppControlTaskFun */
 }
@@ -241,13 +259,13 @@ void AudioGateTaskFun(void *argument)
 
     for(;;)
     {
-        // 🛌 等待队列消息，如果没有操作，这个任务就不占用 CPU
+        // 等待队列消息，如果没有操作，这个任务就不占用 CPU
         if(osMessageQueueGet(AudioCmdQueueHandle, &rx_msg, NULL, osWaitForever) == osOK)
         {
             if(rx_msg.cmd_type == 1) // 收到播放/暂停切换请求
             {
                 if (is_playing) {
-                    BY8301_Pause();
+                    BY8301_Stop();
                     is_playing = 0;
                 } else {
                     BY8301_Play();

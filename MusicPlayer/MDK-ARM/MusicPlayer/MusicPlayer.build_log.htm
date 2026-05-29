@@ -30,21 +30,19 @@ Build target 'MusicPlayer'
 compiling freertos.c...
 ../Core/Src/../../Hardware/oled.h(31): warning:  #1-D: last line of file ends without a newline
   #endif
-../Core/Src/freertos.c(169): warning:  #177-D: variable "is_playing"  was declared but never referenced
-    uint8_t is_playing = 1;
-../Core/Src/freertos.c(225): warning:  #223-D: function "BY8301_PlayIndex" declared implicitly
-    BY8301_PlayIndex(1);
-../Core/Src/freertos.c(233): warning:  #223-D: function "BY8301_PausePlay" declared implicitly
-            else if(r_msg.cmd_type == 2) BY8301_PausePlay();
-../Core/Src/freertos.c(234): warning:  #223-D: function "BY8301_Next" declared implicitly
-            else if(r_msg.cmd_type == 3) BY8301_Next();
-../Core/Src/freertos.c(235): warning:  #223-D: function "BY8301_SetVolume" declared implicitly
-            else if(r_msg.cmd_type == 4) BY8301_SetVolume(r_msg.value);
-../Core/Src/freertos.c: 6 warnings, 0 errors
+../Core/Src/freertos.c(256): warning:  #223-D: function "BY8301_PlayIndex" declared implicitly
+      BY8301_PlayIndex(current_track); // 开机播第一�?
+../Core/Src/freertos.c(268): warning:  #223-D: function "BY8301_Stop" declared implicitly
+                      BY8301_Stop();
+../Core/Src/freertos.c(271): warning:  #223-D: function "BY8301_Play" declared implicitly
+                      BY8301_Play();
+../Core/Src/freertos.c(278): warning:  #223-D: function "BY8301_Next" declared implicitly
+                  BY8301_Next();
+../Core/Src/freertos.c: 5 warnings, 0 errors
 linking...
-Program Size: Code=29108 RO-data=2104 RW-data=460 ZI-data=28884  
+Program Size: Code=30492 RO-data=2208 RW-data=472 ZI-data=28880  
 FromELF: creating hex file...
-"MusicPlayer\MusicPlayer.axf" - 0 Error(s), 6 Warning(s).
+"MusicPlayer\MusicPlayer.axf" - 0 Error(s), 5 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -67,7 +65,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.1.2
-Build Time Elapsed:  00:00:08
+Build Time Elapsed:  00:00:28
 </pre>
 </body>
 </html>
