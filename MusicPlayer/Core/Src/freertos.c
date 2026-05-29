@@ -28,6 +28,8 @@
 #include <stdio.h>
 #include "../../Hardware/oled.h"
 #include "fatfs.h"
+#include <stdlib.h>
+#include "ff.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -280,6 +282,8 @@ void AudioGateTaskFun(void *argument)
                 if (current_track > 99) current_track = 1; // 防止曲目溢出
                 is_playing = 1;     // BY8301切歌后会自动播放
                 ui_update_flag = 1; // 状态改变，叫醒 UI 刷新
+
+                load_lyric_flag = 1;
             }
             
             osDelay(50); // 给串口和模块一点点消化时间，防止疯狂连按死锁
@@ -301,13 +305,69 @@ void FatfsLyricTaskFun(void *argument)
   /* =======================================================
  * 任务 3：后台歌词解析任务 (Below Normal 优先级)
  * ======================================================= */
+
+ /* =======================================================
+ * 任务 3：后台歌词解析任务 (慢任务，专职读取 W25Q64)
+ * ======================================================= */
 	
-  /* Infinite loop */
-  for(;;)
-  {
-    // 暂时空置，下一节课我们在这里手撕 FATFS 歌词滚动
-      osDelay(500);
-  }
+  FIL file;
+    char path[20];
+    char line_buf[64];
+
+    for(;;)
+    {
+        // 如果收到指令，说明切歌了，需要重新加载歌词
+        if (load_lyric_flag == 1) 
+        {
+            load_lyric_flag = 0; // 清除标志位
+            total_lrc_lines = 0; // 重置歌词计数
+            
+            // 组装文件路径，比如 "0:/0001.txt"
+            sprintf(path, "0:/%04d.txt", current_track); 
+            
+            // 尝试打开文件 (FA_READ 读模式)
+            if (f_open(&file, path, FA_READ) == FR_OK) 
+            {
+                // 一行一行地把文本读进 line_buf 里
+                while (f_gets(line_buf, sizeof(line_buf), &file) != NULL) 
+                {
+                    if (total_lrc_lines >= 15) break; // 数组满了就别读了
+                    
+                    // LRC 格式: [00:03.00] xxxxxx
+                    // 检查是不是标准的标签
+                    if (line_buf[0] == '[' && line_buf[3] == ':') 
+                    {
+                        // 1. 算时间：提取分钟和秒
+                        uint8_t min = (line_buf[1] - '0') * 10 + (line_buf[2] - '0');
+                        uint8_t sec = (line_buf[4] - '0') * 10 + (line_buf[5] - '0');
+                        lrc_array[total_lrc_lines].time_sec = min * 60 + sec;
+                        
+                        // 2. 抠歌词：找到 ']' 后面的内容
+                        char *text_start = strchr(line_buf, ']');
+                        if (text_start != NULL) {
+                            // 复制到结构体里 (跳过 ']')
+                            strncpy(lrc_array[total_lrc_lines].text, text_start + 1, 31);
+                            total_lrc_lines++;
+                        }
+                    }
+                }
+                f_close(&file); // 读完务必关掉文件，释放内存
+            }
+            
+            // 为了验证是否读取成功，我们借用一下 UI 刷新的权利
+            // 临时在屏幕上打印第一句歌词！
+            if (total_lrc_lines > 0) {
+                OLED_ShowString(0, 6, lrc_array[0].text, 16); 
+                OLED_Refresh();
+            } else {
+                OLED_ShowString(0, 6, "No Lyric Found  ", 16);
+                OLED_Refresh();
+            }
+        }
+        
+        // 慢任务，每 200ms 去看一眼有没有切歌就行，绝不抢前台 CPU
+        osDelay(200); 
+    }
   /* USER CODE END FatfsLyricTaskFun */
 }
 
